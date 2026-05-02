@@ -37,12 +37,18 @@ ENV HOME=/data \
 
 WORKDIR /app
 
-# Pull only the compiled binary — no node_modules, no sources
+# Pull only the compiled binary
 COPY --from=builder /app/dist/grouter /usr/local/bin/grouter
+
+# Copia a pasta state
 COPY state ./state
+
+# NOVO: Copia o banco de dados diretamente para onde o Grouter espera
+# e garante que o usuário grouter tenha acesso
+RUN mkdir -p /data/.grouter && cp state/grouter.db /data/.grouter/grouter.db && chown -R grouter:grouter /data
+
 COPY scripts/container-entrypoint.sh /app/scripts/container-entrypoint.sh
 RUN chmod 755 /usr/local/bin/grouter /app/scripts/container-entrypoint.sh
-
 # Some PaaS volume mounts are root-owned and not writable by non-root users.
 USER root
 
