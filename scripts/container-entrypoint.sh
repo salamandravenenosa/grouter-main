@@ -1,9 +1,25 @@
 #!/bin/sh
 # FORÇAR SINCRONIZAÇÃO DO BANCO DE DADOS
-echo "[entrypoint] Forçando restauração do grouter.db das contas..."
+# --- Restore inicial do banco com WAL (apenas se não existir) ---
+echo "[entrypoint] Verificando banco inicial..."
+
 mkdir -p /data/.grouter
-cp /app/state/grouter.db /data/.grouter/grouter.db
-chown -R grouter:grouter /data
+
+if [ ! -f /data/.grouter/grouter.db ]; then
+  echo "[entrypoint] Restaurando banco inicial com WAL..."
+
+  cp /app/state/grouter.db /data/.grouter/grouter.db
+
+  if [ -f /app/state/grouter.db-wal ]; then
+    cp /app/state/grouter.db-wal /data/.grouter/
+  fi
+
+  if [ -f /app/state/grouter.db-shm ]; then
+    cp /app/state/grouter.db-shm /data/.grouter/
+  fi
+
+  chown -R grouter:grouter /data/.grouter
+fi
 set -eu
 
 log() {
