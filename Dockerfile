@@ -45,8 +45,7 @@ COPY state ./state
 
 # NOVO: Copia o banco de dados diretamente para onde o Grouter espera
 # e garante que o usuário grouter tenha acesso
-RUN mkdir -p /data/.grouter && cp state/grouter.db /data/.grouter/grouter.db && chown -R grouter:grouter /data
-
+RUN mkdir -p /data/.grouter && chown -R grouter:grouter /data
 COPY scripts/container-entrypoint.sh /app/scripts/container-entrypoint.sh
 RUN chmod 755 /usr/local/bin/grouter /app/scripts/container-entrypoint.sh
 # Some PaaS volume mounts are root-owned and not writable by non-root users.
