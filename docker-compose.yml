@@ -1,0 +1,37 @@
+# grouter — OpenAI-compatible multi-provider proxy
+#
+# Quick start:
+#   docker compose up -d                       # start proxy on :3099
+#   docker compose exec grouter grouter add    # add an account (interactive)
+#   docker compose logs -f grouter             # tail logs
+#   docker compose down                        # stop (data persists in ./data)
+
+services:
+  grouter:
+    image: grouter:latest
+    container_name: grouter
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      # Bound to loopback: the proxy has no request auth, so exposing it on the
+      # LAN would let anyone consume stored credentials. For remote access, use
+      # an SSH tunnel or a compose override with an explicit host IP.
+      - "127.0.0.1:3099:3099"        # router  (OpenAI-compatible endpoint + dashboard)
+      - "127.0.0.1:3100-3110:3100-3110"  # per-provider pinned listeners
+    volumes:
+      - ./data:/data       # SQLite DB, logs, PID file — host-visible for backup
+    environment:
+      - TZ=${TZ:-UTC}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3099/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    # Interactive prompts (grouter add / setup) need a TTY.
+    # `docker compose exec` already gives you one — these just make
+    # `docker compose run` work the same way.
+    stdin_open: true
+    tty: true
