@@ -1,4 +1,9 @@
 #!/bin/sh
+# FORÇAR SINCRONIZAÇÃO DO BANCO DE DADOS
+echo "[entrypoint] Forçando restauração do grouter.db das contas..."
+mkdir -p /data/.grouter
+cp /app/state/grouter.db /data/.grouter/grouter.db
+chown -R grouter:grouter /data
 set -eu
 
 log() {
